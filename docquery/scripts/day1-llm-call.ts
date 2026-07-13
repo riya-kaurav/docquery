@@ -21,3 +21,12 @@ async function main(){
 
 main().catch(console.error);
 main().catch()
+
+
+
+// day 4 about vector database:
+// brute force srch = slower with large chunks 
+// now we have ann index = approximate nearest neighbour  and another is HNSW stabds for hierarchical navigable small world it organise vector intp graph
+
+
+// TASK TO DO IMPLEMENT CODE
