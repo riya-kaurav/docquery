@@ -9,10 +9,20 @@ CREATE TABLE documents (
 );
 
 -- store chunks belonging to documents
-CREATE TABLE chunkS (
-    document_id UNTEGER NOT NULL REFERENCE documents(id) ON DELETE CASCADE
+CREATE TABLE chunks (
+    id SERIAL PRIMARY KEY,
+
+    document_id INTEGER NOT NULL
+        REFERENCES documents(id)
+        ON DELETE CASCADE,
+
     chunk_index INTEGER NOT NULL,
-    content NOT NULL,
+
+    content TEXT NOT NULL,
+
     embedding VECTOR(1536),
-    created_at TIMESTAMP DEFAULT NOW()
+
+    created_at TIMESTAMP DEFAULT NOW(),
+
+    UNIQUE (document_id, chunk_index)
 );
