@@ -42,3 +42,10 @@ export async function embedTexts(
 
   return json.data.map((item) => item.embedding);
 }
+
+export async function embedText(
+  text: string
+): Promise<number[]> {
+  const [embedding] = await embedTexts([text]);
+  return embedding;
+}
