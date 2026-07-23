@@ -1,0 +1,7 @@
+Redis is an in-memory key-value database.
+
+It is commonly used for caching, session storage, pub/sub messaging, and queues.
+
+Redis stores data primarily in memory, making it extremely fast. It supports strings, hashes, lists, sets, sorted sets, streams, and more.
+
+Redis is often paired with PostgreSQL to improve application performance by reducing database load.

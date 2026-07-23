@@ -8,11 +8,11 @@ interface RetrievedChunk {
   distance: number;
 }
 
-export async function retrieve(
+export async function retrieveChunks(
   query: string,
-  k = 3
+  k: number = 3
 ): Promise<RetrievedChunk[]> {
-  // Embed the user's query
+  // Generate an embedding for the user's query
   const embedding = await embedText(query);
 
   // Search for the most similar chunks
@@ -24,7 +24,7 @@ export async function retrieve(
         content,
         embedding <=> $1::vector AS distance
       FROM chunks
-      ORDER BY embedding <=> $1::vector
+      ORDER BY distance ASC
       LIMIT $2;
     `,
     [`[${embedding.join(",")}]`, k]
