@@ -19,6 +19,7 @@
     "typescript": "^6.0.3"
   },
   "dependencies": {
+    "openai": "^7.3.0",
     "pg": "^8.16.3"
   }
 }

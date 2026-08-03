@@ -7,7 +7,6 @@
 //   "What is an LLM?",
 //   2
 // );
-
 // console.log(results);
 import { retrieveChunks } from "./services/retrieve.js";
 

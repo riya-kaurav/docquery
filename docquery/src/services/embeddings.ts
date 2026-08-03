@@ -47,5 +47,8 @@ export async function embedText(
   text: string
 ): Promise<number[]> {
   const [embedding] = await embedTexts([text]);
+  if (!embedding) {
+    throw new Error("Failed to get embedding for the provided text");
+  }
   return embedding;
 }
