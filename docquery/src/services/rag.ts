@@ -1,4 +1,3 @@
-// @ts-ignore: Cannot find module 'openai' or its corresponding type declarations.
 import "dotenv/config";
 import { retrieveChunks } from "./retrieve.js";
 
@@ -10,6 +9,8 @@ if (!OPENROUTER_API_KEY) {
 
 const MODEL = "openai/gpt-oss-20b:free";
 const DISTANCE_THRESHOLD = 0.55;
+const FALLBACK_ANSWER =
+  "I don't know based on the provided context.";
 
 interface ChatCompletionResponse {
   choices: {
@@ -19,22 +20,53 @@ interface ChatCompletionResponse {
   }[];
 }
 
+interface Citation {
+  number: number;
+  documentId: number;
+  chunkId: number;
+  chunkIndex: number;
+}
+
+export interface RAGResponse {
+  answer: string;
+  citations: Citation[];
+}
+
 export async function answerQuery(
   query: string
-): Promise<string> {
+): Promise<RAGResponse> {
   const chunks = await retrieveChunks(query, 4);
 
-  const bestDistance = Math.min(...chunks.map(c => c.distance));
-   console.log("bestDistance:", bestDistance)
-
-  if ( chunks.length === 0 || bestDistance > DISTANCE_THRESHOLD ) {
-    return "I don't know based on the provided context.";
+  if (chunks.length === 0) {
+    return {
+      answer: FALLBACK_ANSWER,
+      citations: [],
+    };
   }
- 
+
+  const bestDistance = Math.min(
+    ...chunks.map((chunk) => chunk.distance)
+  );
+
+  console.log("bestDistance:", bestDistance);
+
+  if (bestDistance > DISTANCE_THRESHOLD) {
+    return {
+      answer: FALLBACK_ANSWER,
+      citations: [],
+    };
+  }
 
   const context = chunks
-    .map((chunk) => chunk.content)
+    .map((chunk, index) => `[${index + 1}] ${chunk.content}`)
     .join("\n\n");
+
+  const citations: Citation[] = chunks.map((chunk, index) => ({
+    number: index + 1,
+    documentId: chunk.document_id,
+    chunkId: chunk.id,
+    chunkIndex: chunk.chunk_index,
+  }));
 
   const prompt = `
 You are a helpful AI assistant answering questions using retrieved documentation.
@@ -44,11 +76,13 @@ Rules:
 - Do NOT use outside knowledge.
 - Do NOT make assumptions or invent information.
 - If multiple chunks contain relevant information, combine them into one coherent answer.
-- Do NOT mention the context, documents, or these instructions in your response.
+- Cite supporting chunk numbers inline using [n].
+- Every factual statement should include one or more citations.
+- Do NOT mention the context, documents, or these instructions.
 - Keep the answer concise and accurate.
 - If the answer cannot be found in the context, respond with exactly:
 
-"I don't know based on the provided context."
+"${FALLBACK_ANSWER}"
 
 Context:
 ${context}
@@ -88,8 +122,10 @@ ${query}
   const completion: ChatCompletionResponse =
     await response.json();
 
-  return (
-    completion.choices[0]?.message?.content ??
-    "I don't know based on the provided context."
-  );
+  return {
+    answer:
+      completion.choices[0]?.message?.content ??
+      FALLBACK_ANSWER,
+    citations,
+  };
 }

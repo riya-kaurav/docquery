@@ -1,15 +1,14 @@
-// import { ingestDocument } from "./services/ingest.js";
+import Fastify from "fastify";
+import { chatRoutes } from "./routes/chat.js";
 
-// await ingestDocument("docs/ai-guide.txt")
-// import { retrieveChunks } from "./services/retrieve.js";
+const fastify = Fastify({
+  logger: true,
+});
 
-// const results = await retrieveChunks(
-//   "What is an LLM?",
-//   2
-// );
-// console.log(results);
-import { retrieveChunks } from "./services/retrieve.js";
+await fastify.register(chatRoutes);
 
-const results = await retrieveChunks("What is Redis used for?", 2);
+await fastify.listen({
+  port: 3000,
+});
 
-console.log(results);
+console.log("Server running on http://localhost:3000");
