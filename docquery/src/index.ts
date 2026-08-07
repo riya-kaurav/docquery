@@ -12,3 +12,4 @@ await fastify.listen({
 });
 
 console.log("Server running on http://localhost:3000");
+

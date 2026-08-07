@@ -13,8 +13,15 @@ export async function chatRoutes(fastify: FastifyInstance) {
       });
     }
 
-    const result = await answerQuery(query.trim());
+    try {
+      const result = await answerQuery(query.trim());
+      return reply.send(result);
+    } catch (error) {
+      fastify.log.error(error);
 
-    return reply.send(result);
+      return reply.status(502).send({
+        error: "Failed to communicate with AI service.",
+      });
+    }
   });
 }

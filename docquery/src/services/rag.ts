@@ -36,7 +36,7 @@ export async function answerQuery(
   query: string
 ): Promise<RAGResponse> {
   const chunks = await retrieveChunks(query, 4);
-  console.log(chunks);
+  
 
   if (chunks.length === 0) {
     return {
@@ -91,7 +91,7 @@ ${context}
 Question:
 ${query}
 `;
-
+console.log("MODEL =", MODEL);
   const response = await fetch(
     "https://openrouter.ai/api/v1/chat/completions",
     {
