@@ -36,6 +36,7 @@ export async function answerQuery(
   query: string
 ): Promise<RAGResponse> {
   const chunks = await retrieveChunks(query, 4);
+  console.log(chunks);
 
   if (chunks.length === 0) {
     return {
