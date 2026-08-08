@@ -6,6 +6,7 @@ import { chunkText } from "./chunking.js";
 import { embedTexts } from "./embeddings.js";
 
 export async function ingestDocument(filePath: string): Promise<void> {
+  
   // Resolve the file path and read its contents
   const absolutePath = path.resolve(filePath);
   const content = await readFile(absolutePath, "utf-8");
