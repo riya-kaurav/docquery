@@ -6,6 +6,7 @@ import {
 
 import redis from "../config/redis.js";
 import { ingestDocument } from "../services/ingest.js";
+import { ingestDLQ } from "./dlq.js";
 
 interface IngestJobData {
   filePath: string;
@@ -97,7 +98,8 @@ export const ingestWorker = new Worker<IngestJobData>(
           job.attemptsMade + 1
         }`
       );
-
+     
+       
       await ingestDocument(job.data.filePath);
 
       console.log(`Job ${job.id} completed`);
@@ -184,11 +186,28 @@ ingestWorker.on("completed", (job) => {
   );
 });
 
-ingestWorker.on("failed", (job, error) => {
-  console.error(
-    `Job ${job?.id} failed after ${
-      job?.attemptsMade
-    } attempts:`,
-    error.message
-  );
+ingestWorker.on("failed", async (job, err) => {
+  if (!job) return;
+
+  const maxAttempts = job.opts.attempts ?? 1;
+
+  const exhausted =
+    job.attemptsMade >= maxAttempts;
+
+  const permanent =
+    err instanceof UnrecoverableError;
+
+  if (exhausted || permanent) {
+    await ingestDLQ.add("dead-ingestion-job", {
+      originalJobId: job.id,
+      filePath: job.data.filePath,
+      error: err.message,
+      attemptsMade: job.attemptsMade,
+      failedAt: new Date().toISOString(),
+    });
+
+    console.log(
+      `[DLQ] Job ${job.id} permanently failed after ${job.attemptsMade} attempts`
+    );
+  }
 });
