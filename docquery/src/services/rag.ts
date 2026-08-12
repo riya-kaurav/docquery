@@ -9,6 +9,7 @@ if (!OPENROUTER_API_KEY) {
 
 const MODEL = "openai/gpt-oss-20b:free";
 const DISTANCE_THRESHOLD = 0.55;
+
 const FALLBACK_ANSWER =
   "I don't know based on the provided context.";
 
@@ -18,6 +19,11 @@ interface ChatCompletionResponse {
       content: string;
     };
   }[];
+  usage?: {
+    prompt_tokens?: number;
+    completion_tokens?: number;
+    total_tokens?: number;
+  };
 }
 
 interface Citation {
@@ -35,8 +41,17 @@ export interface RAGResponse {
 export async function answerQuery(
   query: string
 ): Promise<RAGResponse> {
-  const chunks = await retrieveChunks(query, 4);
   
+
+  const retrievalStart = performance.now();
+
+  const chunks = await retrieveChunks(query, 4);
+
+  const retrievalLatency = performance.now() - retrievalStart;
+
+  console.log(
+    `[RETRIEVAL] ${retrievalLatency.toFixed(2)}ms`
+  );
 
   if (chunks.length === 0) {
     return {
@@ -58,16 +73,23 @@ export async function answerQuery(
     };
   }
 
+  
+
   const context = chunks
-    .map((chunk, index) => `[${index + 1}] ${chunk.content}`)
+    .map(
+      (chunk, index) =>
+        `[${index + 1}] ${chunk.content}`
+    )
     .join("\n\n");
 
-  const citations: Citation[] = chunks.map((chunk, index) => ({
-    number: index + 1,
-    documentId: chunk.document_id,
-    chunkId: chunk.id,
-    chunkIndex: chunk.chunk_index,
-  }));
+  const citations: Citation[] = chunks.map(
+    (chunk, index) => ({
+      number: index + 1,
+      documentId: chunk.document_id,
+      chunkId: chunk.id,
+      chunkIndex: chunk.chunk_index,
+    })
+  );
 
   const prompt = `
 You are a helpful AI assistant answering questions using retrieved documentation.
@@ -91,7 +113,13 @@ ${context}
 Question:
 ${query}
 `;
-console.log("MODEL =", MODEL);
+
+  
+
+  console.log("MODEL =", MODEL);
+
+  const generationStart = performance.now();
+
   const response = await fetch(
     "https://openrouter.ai/api/v1/chat/completions",
     {
@@ -114,6 +142,9 @@ console.log("MODEL =", MODEL);
     }
   );
 
+  const generationLatency =
+    performance.now() - generationStart;
+
   if (!response.ok) {
     throw new Error(
       `Chat API failed: ${await response.text()}`
@@ -122,6 +153,16 @@ console.log("MODEL =", MODEL);
 
   const completion: ChatCompletionResponse =
     await response.json();
+
+
+  const usage = completion.usage;
+
+  console.log("[GENERATION]", {
+    latencyMs: Number(generationLatency.toFixed(2)),
+    promptTokens: usage?.prompt_tokens ?? 0,
+    completionTokens: usage?.completion_tokens ?? 0,
+    totalTokens: usage?.total_tokens ?? 0,
+  });
 
   return {
     answer:

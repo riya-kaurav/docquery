@@ -1,12 +1,12 @@
+
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
 import { pool } from "../db/index.js";
 import { chunkText } from "./chunking.js";
-import { embedTexts } from "./embeddings.js";
+import { getCachedEmbedding } from "./embedding-cache.js";
 
 export async function ingestDocument(filePath: string): Promise<void> {
-  
   // Resolve the file path and read its contents
   const absolutePath = path.resolve(filePath);
   const content = await readFile(absolutePath, "utf-8");
@@ -29,11 +29,11 @@ export async function ingestDocument(filePath: string): Promise<void> {
   // Split the document into chunks
   const chunks = chunkText(content);
 
-  // Generate embeddings for all chunks
-  const embeddings = await embedTexts(chunks);
-
-  // Insert every chunk
+  // Generate/reuse embedding for each chunk
   for (let i = 0; i < chunks.length; i++) {
+    const embedding = await getCachedEmbedding(chunks[i]);
+
+    // Insert chunk
     await pool.query(
       `
         INSERT INTO chunks
@@ -45,7 +45,7 @@ export async function ingestDocument(filePath: string): Promise<void> {
         documentId,
         i,
         chunks[i],
-        `[${embeddings[i].join(",")}]`,
+        `[${embedding.join(",")}]`,
       ]
     );
   }
