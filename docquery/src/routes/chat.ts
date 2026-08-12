@@ -1,5 +1,10 @@
 import type { FastifyInstance } from "fastify";
 import { answerQuery } from "../services/rag.js";
+import {
+  buildCacheKey,
+  getCached,
+  setCached,
+} from "../services/cache.js";
 
 export async function chatRoutes(fastify: FastifyInstance) {
   fastify.post("/chat", async (request, reply) => {
@@ -14,7 +19,23 @@ export async function chatRoutes(fastify: FastifyInstance) {
     }
 
     try {
-      const result = await answerQuery(query.trim());
+      const normalizedQuery = query.trim();
+
+      const cacheKey = await buildCacheKey(normalizedQuery);
+
+      const cached = await getCached(cacheKey);
+
+      if (cached) {
+        console.log("[CACHE HIT]", cacheKey);
+        return reply.send(cached);
+      }
+
+      console.log("[CACHE MISS]", cacheKey);
+
+      const result = await answerQuery(normalizedQuery);
+
+      await setCached(cacheKey, result, 300);
+
       return reply.send(result);
     } catch (error) {
       fastify.log.error(error);
