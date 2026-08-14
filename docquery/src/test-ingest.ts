@@ -1,6 +1,6 @@
 import { ingestDocument } from "./services/ingest.js";
 
-const filePath = "./docs/ai-guide.txt";
+const filePath = "./docs/redis-guide.txt";
 
 async function main() {
   console.log("Starting ingestion:", filePath);
