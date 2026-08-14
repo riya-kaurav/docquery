@@ -15,9 +15,7 @@ export type GoldenCase = {
 };
 
 export const goldenSet: GoldenCase[] = [
-  // ─────────────────────────────
-  // AI — CHUNK 0
-  // ─────────────────────────────
+ 
 
   {
     id: "q1",
@@ -79,9 +77,7 @@ export const goldenSet: GoldenCase[] = [
     type: "direct",
   },
 
-  // ─────────────────────────────
-  // AI — CHUNK 1
-  // ─────────────────────────────
+  
 
   {
     id: "q5",
@@ -113,9 +109,7 @@ export const goldenSet: GoldenCase[] = [
     type: "direct",
   },
 
-  // ─────────────────────────────
-  // REDIS — CHUNK 0
-  // ─────────────────────────────
+  
 
   {
     id: "q7",
@@ -162,9 +156,7 @@ export const goldenSet: GoldenCase[] = [
     type: "direct",
   },
 
-  // ─────────────────────────────
-  // NO ANSWER IN DOCUMENTS
-  // ─────────────────────────────
+
 
   {
     id: "q10",
