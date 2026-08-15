@@ -1,7 +1,7 @@
 import Fastify from "fastify";
 import { chatRoutes } from "./routes/chat.js";
 import { ingestRoutes } from "./routes/ingest.js";
-import "../src/jobs/ingest.job.js"
+import "./jobs/ingest.job.js"
 
 const fastify = Fastify({
   logger: true,

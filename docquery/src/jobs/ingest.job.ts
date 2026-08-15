@@ -13,8 +13,8 @@ interface IngestJobData {
 }
 
 interface RetryableError extends Error {
-  status?: number;
-  retryAfter?: number;
+  status: number | undefined;
+  retryAfter: number | undefined;
 }
 
 function getStatus(error: unknown): number | undefined {
@@ -98,8 +98,7 @@ export const ingestWorker = new Worker<IngestJobData>(
           job.attemptsMade + 1
         }`
       );
-     
-       
+
       await ingestDocument(job.data.filePath);
 
       console.log(`Job ${job.id} completed`);
@@ -129,7 +128,9 @@ export const ingestWorker = new Worker<IngestJobData>(
           : undefined;
 
       const retryableError =
-        error as RetryableError;
+        error instanceof Error
+          ? error as RetryableError
+          : new Error(String(error)) as RetryableError;
 
       retryableError.status = status;
       retryableError.retryAfter = retryAfter;
@@ -144,8 +145,8 @@ export const ingestWorker = new Worker<IngestJobData>(
     settings: {
       backoffStrategy: (
         attemptsMade: number,
-        _type: string,
-        error: Error
+        _type: string | undefined,
+        error: Error | undefined
       ): number => {
         const retryableError =
           error as RetryableError;

@@ -1,13 +1,11 @@
-import Redis from 'ioredis';
+import { Redis } from "ioredis";
 
-const redis = new Redis(process.env.REDIS_URL, {
-  maxRetriesPerRequest: null
+const redis = new Redis(process.env.REDIS_URL ?? "redis://localhost:6379", {
+  maxRetriesPerRequest: null,
 });
 
-redis.on('error', (error) => {
-  console.error('Redis error:', error);
+redis.on("error", (error: Error) => {
+  console.error("Redis error:", error);
 });
-
-
 
 export default redis;
