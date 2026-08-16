@@ -1,4 +1,4 @@
-# DocQuery — RAG Pipeline
+# DocQuery - RAG Pipeline
 
 A Retrieval-Augmented Generation (RAG) system built from scratch: upload documents, ask questions, get grounded answers with citations.
 
